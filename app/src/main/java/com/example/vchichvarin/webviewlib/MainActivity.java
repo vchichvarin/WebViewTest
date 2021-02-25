@@ -1,23 +1,40 @@
 package com.example.vchichvarin.webviewlib;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.vchichvarin.webviewlib.gamelogic.*;
+import com.example.vchichvarin.webviewlib.locationcheck.IPCheck;
+import com.example.vchichvarin.webviewlib.locationcheck.data.Country;
+import com.example.vchichvarin.webviewlib.locationcheck.CountryRetrofit;
+
+import java.io.IOException;
+
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
+    boolean isUserFromRussia;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        String IP = IPCheck.getIP();
 
-        if (Build.VERSION.SDK_INT >= 27) {
+        try {
+            Response<Country> response = CountryRetrofit.getInstance()
+                    .getJSONApi()
+                    .getCountryByIP(IP, "d0058184b11b55c11973045640dca20a")
+                    .execute();
+
+            Country country = response.body();
+            isUserFromRussia = country.getCountry().equals("Russia");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (!isUserFromRussia) {
             setContentView(R.layout.activity_main);
             PlayGame.init(this);
             PlayGame.newGame();
